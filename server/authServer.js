@@ -40,7 +40,9 @@ async function authenticateUser(username, password) {
 }
 
 function generateAccessToken(user) {
-  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+  return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: '15s',
+  });
 }
 
 function generateRefreshToken(user) {
@@ -83,9 +85,14 @@ app.post('/login', async (req, res) => {
 
     res.json({ accessToken, refreshToken });
   } catch (error) {
-    console.error(error);
     res.sendStatus(500);
   }
+});
+
+app.get('/user', authenticateToken, (req, res) => {
+  const { user } = req;
+
+  res.json(user);
 });
 
 app.post('/refresh-token', (req, res) => {
@@ -96,7 +103,11 @@ app.post('/refresh-token', (req, res) => {
   }
 
   try {
-    const decodedUser = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    const decodedUser = jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+    delete decodedUser.iat;
 
     const accessToken = generateAccessToken(decodedUser);
 
@@ -117,12 +128,6 @@ app.post('/logout', (req, res) => {
   refreshTokens.splice(refreshTokens.indexOf(refreshToken), 1);
 
   res.status(204).json({ success: true });
-});
-
-app.get('/user', authenticateToken, (req, res) => {
-  const { user } = req;
-
-  res.json(user);
 });
 
 app.listen(3001, () => {

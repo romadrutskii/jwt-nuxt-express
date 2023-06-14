@@ -4,8 +4,8 @@
 <template>
   <div>
     <div>
-      <NuxtLink to="/post">
-        /post
+      <NuxtLink to="/my-posts">
+        /my-posts
       </NuxtLink>
     </div>
     <div>

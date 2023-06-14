@@ -4,12 +4,14 @@ interface User {
 
 export default defineStore('auth', () => {
   const { notify } = useNotifications();
-  const accessTokenCookie = useCookie<string | null>('accessToken');
-  const refreshTokenCookie = useCookie<string | null>('refreshToken');
+  const accessTokenCookie = useStatefulCookie<string | null>('accessToken');
+  const refreshTokenCookie = useCookie<string | null>('refreshToken', {
+    sameSite: true,
+  });
+  const postsStore = usePostsStore();
 
   const currentUser = ref<null | User>(null);
   const isLoading = ref(false);
-
   const isLoggedIn = computed(() => !!currentUser.value);
 
   async function register(username: string, password: string) {
@@ -31,7 +33,6 @@ export default defineStore('auth', () => {
       return;
     }
 
-    console.log(data.value);
     if (data.value.success) {
       notify({
         type: 'success',
@@ -82,28 +83,16 @@ export default defineStore('auth', () => {
     isLoading.value = true;
     const { data, error } = await useAuthFetch('user', {
       method: 'GET',
-      onRequest({ request, options }) {
-        const accessToken = accessTokenCookie.value;
-        if (accessToken) {
-          options.headers = options.headers || {};
-          options.headers.Authorization = `Bearer ${accessToken}`;
-        } else {
-          throw new Error(
-            'Sorry, you have to be logged in for viewing this page.'
-          );
-        }
+      headers: {
+        Authorization: `Bearer ${accessTokenCookie.value}`,
       },
     });
     isLoading.value = false;
 
     if (error.value) {
-      const errorMessage =
-        error.value instanceof Error
-          ? error.value.message
-          : error.value.data.error;
       notify({
         type: 'error',
-        message: errorMessage,
+        message: error.value.data?.error || error.value.message || 'Error',
       });
       return;
     }
@@ -117,7 +106,7 @@ export default defineStore('auth', () => {
 
   async function logout() {
     isLoading.value = true;
-    const { data, error } = await useAuthFetch('logout', {
+    const { error } = await useAuthFetch('logout', {
       method: 'POST',
       body: {
         refreshToken: refreshTokenCookie.value,
@@ -126,24 +115,50 @@ export default defineStore('auth', () => {
     isLoading.value = false;
 
     if (error.value) {
-      const errorMessage =
-        error.value instanceof Error
-          ? error.value.message
-          : error.value.data.error;
       notify({
         type: 'error',
-        message: errorMessage,
+        message: error.value.data?.error || error.value.message || 'Error',
       });
       return;
     }
 
     accessTokenCookie.value = null;
     refreshTokenCookie.value = null;
+    clearState();
+    postsStore.clearState();
+
     notify({
       type: 'success',
       message: "You've successfully logged out.",
     });
     await navigateTo('/login');
+  }
+
+  async function refreshToken() {
+    isLoading.value = true;
+    const { data, error } = await useAuthFetch('refresh-token', {
+      method: 'POST',
+      body: {
+        refreshToken: refreshTokenCookie.value,
+      },
+    });
+    isLoading.value = false;
+
+    if (error.value) {
+      notify({
+        type: 'error',
+        message: error.value.data?.error || error.value.message || 'Error',
+      });
+      return;
+    }
+
+    if (data.value) {
+      accessTokenCookie.value = data.value.accessToken;
+    }
+  }
+
+  function clearState() {
+    currentUser.value = null;
   }
 
   return {
@@ -154,5 +169,6 @@ export default defineStore('auth', () => {
     getCurrentUser,
     logout,
     register,
+    refreshToken,
   };
 });
