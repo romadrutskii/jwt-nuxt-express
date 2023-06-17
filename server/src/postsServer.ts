@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const { authenticateToken } = require('./common');
+const postsRouter = require('./routes/posts');
 
 const app = express();
 app.use(express.json());
@@ -13,22 +13,7 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-const posts = [
-  {
-    username: 'username',
-    title: 'Post 1',
-    text: 'Dear diary...',
-  },
-  {
-    username: 'Jim',
-    title: 'Post 2',
-    text: 'My name is Jim',
-  },
-];
-
-app.get('/posts', authenticateToken, (req, res) => {
-  res.json(posts.filter((post) => post.username === req.user.username));
-});
+app.use('/posts', postsRouter);
 
 app.listen(3000, () => {
   console.log('Server started on http://localhost:3000');

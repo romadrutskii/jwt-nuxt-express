@@ -8,6 +8,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
   },
+  ignorePatterns: ['dist'],
   rules: {
     'import/prefer-default-export': 'off',
     'consistent-return': 'off',

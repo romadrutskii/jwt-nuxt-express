@@ -4,7 +4,11 @@ const dotenv = require('dotenv');
 const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
-const { authenticateToken } = require('./common');
+const { authenticateToken } = require('./middleware/authenticateToken');
+
+import { User } from '../../interfaces/auth';
+import { Express, Request, Response, NextFunction } from 'express';
+import { AuthenticatedRequest } from './interfaces/auth';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -19,16 +23,16 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-const users = [
+const users: User[] = [
   {
     id: 'e7499b06-a473-45c5-8fc8-aabda6210960',
     username: 'username',
     password: '$2b$10$tU.BhhyH75SHhs8p2D1SqOUJE8dZJO3QG1WwytFLApGWCh3tIqNGS',
   },
 ];
-const refreshTokens = [];
+const refreshTokens: string[] = [];
 
-async function authenticateUser(username, password) {
+async function authenticateUser(username: string, password: string) {
   const user = users.find((u) => u.username === username);
 
   if (!user) {
@@ -39,17 +43,17 @@ async function authenticateUser(username, password) {
   return isPasswordValid ? user : null;
 }
 
-function generateAccessToken(user) {
+function generateAccessToken(user: User) {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    expiresIn: '15s',
+    expiresIn: '15d',
   });
 }
 
-function generateRefreshToken(user) {
+function generateRefreshToken(user: User) {
   return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET);
 }
 
-app.post('/register', async (req, res) => {
+app.post('/register', async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   if (users.some((user) => user.username === username)) {
@@ -68,7 +72,7 @@ app.post('/register', async (req, res) => {
   res.status(201).json({ success: true });
 });
 
-app.post('/login', async (req, res) => {
+app.post('/login', async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   try {
@@ -89,13 +93,17 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.get('/user', authenticateToken, (req, res) => {
-  const { user } = req;
+app.get(
+  '/user',
+  authenticateToken,
+  (req: AuthenticatedRequest, res: Response) => {
+    const { user } = req;
 
-  res.json(user);
-});
+    res.json(user);
+  }
+);
 
-app.post('/refresh-token', (req, res) => {
+app.post('/refresh-token', (req: Request, res: Response) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken || !refreshTokens.includes(refreshToken)) {
@@ -118,7 +126,7 @@ app.post('/refresh-token', (req, res) => {
   }
 });
 
-app.post('/logout', (req, res) => {
+app.post('/logout', (req: Request, res: Response) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
