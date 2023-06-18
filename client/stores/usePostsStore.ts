@@ -1,10 +1,5 @@
-interface Post {
-  id: string;
-  title: string;
-  text: string;
-}
-
-export default defineStore('posts', () => {
+/* export default defineStore('posts', () => {
+  const accessTokenCookie = useStatefulCookie<string | null>('accessToken');
   const { notify } = useNotifications();
 
   const posts = ref<null | Post[]>([]);
@@ -15,6 +10,9 @@ export default defineStore('posts', () => {
     const { data, error } = await usePostsFetch('posts', {
       method: 'GET',
       server: true,
+      headers: {
+        Authorization: `Bearer ${accessTokenCookie.value}`,
+      },
     });
     isLoading.value = false;
 
@@ -37,3 +35,4 @@ export default defineStore('posts', () => {
 
   return { getPosts, posts, isLoading, clearState };
 });
+ */

@@ -7,7 +7,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const authStore = useAuthStore();
   const accessTokenCookie = useStatefulCookie<string | null>('accessToken');
   const { getCurrentUser, refreshToken } = authStore;
-  const { isLoggedIn } = storeToRefs(authStore);
+  const { isLoggedIn, currentUser } = storeToRefs(authStore);
 
   if (accessTokenCookie.value && isTokenExpired(accessTokenCookie.value)) {
     await refreshToken();
@@ -19,9 +19,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   if (
     isLoggedIn.value &&
-    (exceptions.includes(to.fullPath) || to.matched.length === 0)
+    (exceptions.includes(to.fullPath) || to.matched.length === 0) &&
+    currentUser.value
   ) {
-    return navigateTo('/my-posts');
+    return navigateTo(`/${currentUser.value.username}`);
   }
 
   if (!isLoggedIn.value && !exceptions.includes(to.fullPath)) {

@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-const postsStore = usePostsStore();
-await postsStore.getPosts();
+import { Post } from '~/../interfaces/posts';
 
-const { posts } = storeToRefs(postsStore);
+const { posts } = defineProps<{
+  posts: Post[],
+}>();
 </script>
 
 <template>
@@ -10,7 +11,6 @@ const { posts } = storeToRefs(postsStore);
     <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Your posts</h2>
     <div v-if="posts && posts.length">
       <div v-for="post in posts" :key="post.id">
-        <h3>{{ post.title }}</h3>
         <p>{{ post.text }}</p>
       </div>
     </div>
@@ -19,4 +19,3 @@ const { posts } = storeToRefs(postsStore);
     </div>
   </div>
 </template>
-

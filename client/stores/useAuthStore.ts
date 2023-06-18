@@ -8,7 +8,6 @@ export default defineStore('auth', () => {
   const refreshTokenCookie = useCookie<string | null>('refreshToken', {
     sameSite: true,
   });
-  const postsStore = usePostsStore();
 
   const currentUser = ref<null | User>(null);
   const isLoading = ref(false);
@@ -75,7 +74,7 @@ export default defineStore('auth', () => {
         message: 'You have successfully logged in',
       });
 
-      await navigateTo('/my-posts');
+      await navigateTo(`/${currentUser.value.username}`);
     }
   }
 
@@ -125,7 +124,6 @@ export default defineStore('auth', () => {
     accessTokenCookie.value = null;
     refreshTokenCookie.value = null;
     clearState();
-    postsStore.clearState();
 
     notify({
       type: 'success',

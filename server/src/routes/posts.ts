@@ -1,28 +1,13 @@
 const { v4: uuidv4 } = require('uuid');
 const { authenticateToken } = require('../middleware/authenticateToken');
 
-import { Response, Router } from 'express';
-import { Post } from '../../../interfaces/posts';
+import { Request, Response, Router } from 'express';
 import { AuthenticatedRequest } from '../interfaces/auth';
 
-const router = Router();
+import posts from '../database/posts';
+import users from '../database/users';
 
-const posts: Post[] = [
-  {
-    id: '43740730-8995-4543-bd7d-0491029eb5b0',
-    userId: 'e7499b06-a473-45c5-8fc8-aabda6210960',
-    text: 'Dear diary...',
-    likes: 0,
-    likedBy: [],
-  },
-  {
-    id: '7ec838f0-2631-48cb-b672-9e192bba42bf',
-    userId: 'e7499b06-a473-45c5-8fc8-aabda6210960',
-    text: 'My name is Jim',
-    likes: 0,
-    likedBy: [],
-  },
-];
+const router = Router();
 
 // Get posts by userId
 router.get('/', (req: AuthenticatedRequest, res: Response) => {
@@ -34,6 +19,26 @@ router.get('/', (req: AuthenticatedRequest, res: Response) => {
   }
   const userPosts = posts.filter((post) => post.userId === userId);
   res.json(userPosts);
+});
+
+// Get posts by username
+router.get('/:username', (req: Request, res: Response) => {
+  const { username } = req.params;
+
+  try {
+    const user = users.find((u) => u.username === username);
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const userPosts = posts.filter((post) => post.userId === user.id);
+
+    res.json(userPosts);
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
+  }
 });
 
 // Add a new post
