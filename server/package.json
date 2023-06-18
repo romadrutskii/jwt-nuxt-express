@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc-watch --onSuccess \"npm run serve\"",
-    "serve": "nodemon",
+    "dev": "tsc-watch --onSuccess \"npm run serve\"",
+    "serve": "concurrently \"node ./dist/server/src/authServer.js\" \"node ./dist/server/src/postsServer.js\"",
     "debug": "node --inspect ./authServer.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

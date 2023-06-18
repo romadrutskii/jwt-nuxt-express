@@ -1,6 +1,0 @@
-{
-  "watch": ["dist"],
-  "ext": "js",
-  "ignore": ["*.test.js", "dist/**/*.map"],
-  "exec": "concurrently --kill-others \"node ./dist/server/src/authServer.js\" \"node ./dist/server/src/postsServer.js\""
-}

@@ -154,6 +154,7 @@ export default defineStore('auth', () => {
 
     if (data.value) {
       accessTokenCookie.value = data.value.accessToken;
+      refreshTokenCookie.value = data.value.refreshToken;
     }
   }
 
