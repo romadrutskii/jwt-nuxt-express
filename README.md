@@ -98,9 +98,18 @@ nodemon postsServer.js
 
 ## Client is build using Nuxt 3
 
+```bash
+cd client
+```
+
+Firstly, you need to set up the environment variables:
+
+```bash
+CLIENT_PORT=5173
+```
+
 Start the development server on `http://localhost:5173`
 
 ```bash
-cd client
 npm run dev
 ```

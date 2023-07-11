@@ -88,14 +88,6 @@ export default defineStore('auth', () => {
     });
     isLoading.value = false;
 
-    if (error.value) {
-      notify({
-        type: 'error',
-        message: error.value.data?.error || error.value.message || 'Error',
-      });
-      return;
-    }
-
     if (data.value) {
       currentUser.value = {
         username: data.value.username,
@@ -141,14 +133,6 @@ export default defineStore('auth', () => {
       },
     });
     isLoading.value = false;
-
-    if (error.value) {
-      notify({
-        type: 'error',
-        message: error.value.data?.error || error.value.message || 'Error',
-      });
-      return;
-    }
 
     if (data.value) {
       accessTokenCookie.value = data.value.accessToken;

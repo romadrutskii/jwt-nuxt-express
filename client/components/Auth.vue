@@ -7,7 +7,6 @@ const username = ref('');
 const password = ref('');
 
 const authStore = useAuthStore();
-const { isLoading } = storeToRefs(authStore);
 const { login, register } = authStore;
 
 const onSubmit = () => {

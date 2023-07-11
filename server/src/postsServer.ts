@@ -6,10 +6,11 @@ const postsRouter = require('./routes/posts');
 
 const app = express();
 app.use(express.json());
+
 const corsOptions = {
   credentials: true,
-  origin: 'http://localhost:5173',
-  optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+  origin: `http://localhost:${process.env.CLIENT_PORT}`,
+  optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
