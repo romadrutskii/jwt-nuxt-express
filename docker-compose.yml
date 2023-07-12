@@ -1,4 +1,24 @@
 services:
+  db:
+    image: postgres:15.3-alpine3.18
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 123
+
+  server:
+    build: ./server
+    command: npm run dev
+    restart: unless-stopped
+    ports:
+      - '${AUTH_SERVER_PORT}:${AUTH_SERVER_PORT}'
+      - '${POSTS_SERVER_PORT}:${POSTS_SERVER_PORT}'
+    environment:
+      - AUTH_SERVER_PORT=${AUTH_SERVER_PORT}
+      - POSTS_SERVER_PORT=${POSTS_SERVER_PORT}
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - db
+
   client:
     build: ./client
     command: npm run dev
@@ -7,3 +27,5 @@ services:
       - '${CLIENT_PORT}:${CLIENT_PORT}'
     environment:
       - CLIENT_PORT=${CLIENT_PORT}
+    profiles:
+      - donotstart

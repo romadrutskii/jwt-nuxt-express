@@ -1,8 +1,13 @@
 const jwt = require('jsonwebtoken');
 
 import { Response, NextFunction } from 'express';
-import { User } from '../../../interfaces/auth';
 import { AuthenticatedRequest } from '../interfaces/auth';
+
+interface User {
+  id: string;
+  username: string;
+  password: string;
+}
 
 function authenticateToken(
   req: AuthenticatedRequest,

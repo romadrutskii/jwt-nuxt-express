@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const authRouter = require('./routes/auth');
+const port = process.env.AUTH_SERVER_PORT;
 
 // Load environment variables from .env file
 dotenv.config();
@@ -18,8 +19,8 @@ app.use(cors(corsOptions));
 
 app.use('/', authRouter);
 
-app.listen(3001, () => {
-  console.log('Server started on http://localhost:3001');
+app.listen(port, () => {
+  console.log(`Server started on http://localhost:${port}`);
 });
 
 // Workaround for typescript

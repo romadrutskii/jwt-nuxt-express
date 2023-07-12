@@ -1,38 +1,49 @@
-const { v4: uuidv4 } = require('uuid');
 const { authenticateToken } = require('../middleware/authenticateToken');
 
 import { Request, Response, Router } from 'express';
 import { AuthenticatedRequest } from '../interfaces/auth';
+import { PrismaClient, Prisma } from '@prisma/client';
 
-import posts from '../database/posts';
-import users from '../database/users';
+const prisma = new PrismaClient();
 
 const router = Router();
 
 // Get posts by userId
-router.get('/', (req: AuthenticatedRequest, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   const { userId } = req.query;
   if (!userId) {
     return res
       .status(400)
       .json({ error: 'userId is required in query parameters.' });
   }
-  const userPosts = posts.filter((post) => post.userId === userId);
+
+  const userPosts = await prisma.post.findMany({
+    where: {
+      authorId: userId as string,
+    },
+  });
   res.json(userPosts);
 });
 
 // Get posts by username
-router.get('/:username', (req: Request, res: Response) => {
+router.get('/:username', async (req: Request, res: Response) => {
   const { username } = req.params;
 
   try {
-    const user = users.find((u) => u.username === username);
+    const user = await prisma.user.findFirst({
+      where: {
+        username: username,
+      },
+    });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-
-    const userPosts = posts.filter((post) => post.userId === user.id);
+    const userPosts = await prisma.post.findMany({
+      where: {
+        authorId: user.id,
+      },
+    });
 
     res.json(userPosts);
   } catch (error) {
@@ -45,18 +56,23 @@ router.get('/:username', (req: Request, res: Response) => {
 router.post(
   '/',
   authenticateToken,
-  (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user!.id;
+    console.log(userId);
+
     if (!req.body.text) {
       return res.status(422).json({ error: 'Post text must be provided.' });
     }
-    const newPost = {
-      id: uuidv4(),
-      userId: req.user!.id,
-      text: req.body.text,
-      likes: 0,
-      likedBy: [],
-    };
-    posts.push(newPost);
+    const newPost = await prisma.post.create({
+      data: {
+        author: {
+          connect: {
+            id: userId,
+          },
+        },
+        text: req.body.text,
+      },
+    });
     res.status(201).json(newPost);
   }
 );
@@ -65,22 +81,35 @@ router.post(
 router.put(
   '/:id',
   authenticateToken,
-  (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response) => {
     if (!req.body.text) {
       return res.status(422).json({ error: 'Post text must be provided.' });
     }
 
-    const post = posts.find((post) => post.id === req.params.id);
+    const post = await prisma.post.findUnique({
+      where: {
+        id: req.params.id,
+      },
+    });
     if (!post) {
       return res.status(404).json({ error: 'Post not found.' });
     }
-    if (post.userId !== req.user!.id) {
+
+    if (post.authorId !== req.user!.id) {
       return res
         .status(403)
         .json({ error: 'You can only edit your own posts.' });
     }
-    post.text = req.body.text;
-    res.json(post);
+
+    const updatedPost = await prisma.post.update({
+      where: {
+        id: req.params.id,
+      },
+      data: {
+        text: req.body.text,
+      },
+    });
+    res.json(updatedPost);
   }
 );
 
@@ -88,18 +117,26 @@ router.put(
 router.delete(
   '/:id',
   authenticateToken,
-  (req: AuthenticatedRequest, res: Response) => {
-    const postIndex = posts.findIndex((post) => post.id === req.params.id);
-    if (postIndex === -1) {
+  async (req: AuthenticatedRequest, res: Response) => {
+    const post = await prisma.post.findUnique({
+      where: {
+        id: req.params.id,
+      },
+    });
+    if (!post) {
       return res.status(404).json({ error: 'Post not found.' });
     }
-    if (posts[postIndex].userId !== req.user!.id) {
+    if (post.authorId !== req.user!.id) {
       return res
         .status(403)
         .json({ error: 'You can only delete your own posts.' });
     }
-    const deletedPost = posts.splice(postIndex, 1);
-    res.json(deletedPost);
+    await prisma.post.delete({
+      where: {
+        id: req.params.id,
+      },
+    });
+    res.json({ success: true });
   }
 );
 
@@ -107,16 +144,58 @@ router.delete(
 router.post(
   '/:id/like',
   authenticateToken,
-  (req: AuthenticatedRequest, res: Response) => {
-    const post = posts.find((post) => post.id === req.params.id);
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found.' });
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user!.id;
+    const postId = req.params.id;
+
+    if (!postId) {
+      res.status(400).json({ error: 'You must specify post id.' });
     }
-    if (!post.likedBy.includes(req.user!.id)) {
-      post.likes += 1;
-      post.likedBy.push(req.user!.id);
+
+    let like = await prisma.like.findFirst({
+      where: {
+        userId,
+        postId,
+      },
+    });
+    if (like) {
+      return res.status(404).json({
+        error: `You have already liked this post.`,
+      });
     }
-    res.json(post);
+
+    like = await prisma.like.create({
+      data: {
+        user: {
+          connect: {
+            id: userId,
+          },
+        },
+        post: {
+          connect: {
+            id: postId,
+          },
+        },
+      },
+    });
+
+    const updatedPost = await prisma.post.update({
+      where: {
+        id: postId,
+      },
+      data: {
+        likeCount: {
+          increment: 1,
+        },
+        /*         likes: {
+          connect: {
+            id: like.id,
+          },
+        }, */
+      },
+    });
+
+    res.status(200).json(updatedPost);
   }
 );
 
@@ -124,17 +203,49 @@ router.post(
 router.delete(
   '/:id/like',
   authenticateToken,
-  (req: AuthenticatedRequest, res: Response) => {
-    const post = posts.find((post) => post.id === req.params.id);
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found.' });
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user!.id;
+    const postId = req.params.id;
+
+    if (!postId) {
+      res.status(400).json({ error: 'You must specify post id.' });
     }
-    const userIndex = post.likedBy.indexOf(req.user!.id);
-    if (userIndex !== -1) {
-      post.likes -= 1;
-      post.likedBy.splice(userIndex, 1);
+
+    let like = await prisma.like.findFirst({
+      where: {
+        userId,
+        postId,
+      },
+    });
+    if (!like) {
+      return res.status(404).json({
+        error: 'You have not liked this post.',
+      });
     }
-    res.json(post);
+
+    like = await prisma.like.delete({
+      where: {
+        id: like.id,
+      },
+    });
+
+    const updatedPost = await prisma.post.update({
+      where: {
+        id: postId,
+      },
+      data: {
+        likeCount: {
+          decrement: 1,
+        },
+        /*         likes: {
+          disconnect: {
+            id: like.id,
+          },
+        }, */
+      },
+    });
+
+    res.status(200).json(updatedPost);
   }
 );
 

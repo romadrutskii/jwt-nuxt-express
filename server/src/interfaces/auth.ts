@@ -1,5 +1,10 @@
 import { Request as ExpressRequest } from 'express';
-import { User } from '../../../interfaces/auth';
+
+interface User {
+  id: string;
+  username: string;
+  password: string;
+}
 
 export interface AuthenticatedRequest extends ExpressRequest {
   user?: User;

@@ -1,7 +1,6 @@
 const bcrypt = require('bcrypt');
 const { authenticateToken } = require('../middleware/authenticateToken');
 const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
 
 import { Request, Response, Router } from 'express';
 import { AuthenticatedRequest } from '../interfaces/auth';
