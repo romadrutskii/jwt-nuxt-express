@@ -7,26 +7,32 @@ import { Request, Response, Router } from 'express';
 import { AuthenticatedRequest } from '../interfaces/auth';
 import { pick } from '../utils/object';
 import { issueTokenPair } from '../utils/auth';
-import users from '../database/users';
+import { PrismaClient } from '@prisma/client';
 
-const refreshTokens: string[] = [];
+const prisma = new PrismaClient();
 
 const router = Router();
 
 router.post('/register', async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
-  if (users.some((user) => user.username === username)) {
+  const user = await prisma.user.findFirst({
+    where: {
+      username: username,
+    },
+  });
+
+  if (user) {
     return res.status(400).json({ message: 'Username already taken' });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const id = uuidv4();
 
-  users.push({
-    id,
-    username,
-    password: hashedPassword,
+  await prisma.user.create({
+    data: {
+      username,
+      password: hashedPassword,
+    },
   });
 
   res.status(201).json({ success: true });
@@ -36,7 +42,11 @@ router.post('/login', async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   try {
-    const user = users.find((u) => u.username === username);
+    const user = await prisma.user.findFirst({
+      where: {
+        username: username,
+      },
+    });
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid username or password' });
@@ -50,7 +60,11 @@ router.post('/login', async (req: Request, res: Response) => {
 
     const tokens = issueTokenPair(user);
 
-    refreshTokens.push(tokens.refreshToken);
+    await prisma.refreshToken.create({
+      data: {
+        refresh_token: tokens.refreshToken,
+      },
+    });
 
     res.json(tokens);
   } catch (error) {
@@ -69,10 +83,16 @@ router.get(
   }
 );
 
-router.post('/refresh-token', (req: Request, res: Response) => {
+router.post('/refresh-token', async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
 
-  if (!refreshToken || !refreshTokens.includes(refreshToken)) {
+  const existingRefreshToken = await prisma.refreshToken.findFirst({
+    where: {
+      refresh_token: refreshToken,
+    },
+  });
+
+  if (!refreshToken || !existingRefreshToken) {
     return res.sendStatus(401);
   }
 
@@ -85,9 +105,14 @@ router.post('/refresh-token', (req: Request, res: Response) => {
 
     const { accessToken, refreshToken: newRefreshToken } = issueTokenPair(user);
 
-    // Replace the old refresh token with the new one in your storage
-    const oldTokenIndex = refreshTokens.indexOf(refreshToken);
-    refreshTokens[oldTokenIndex] = newRefreshToken;
+    await prisma.refreshToken.update({
+      where: {
+        refresh_token: existingRefreshToken.refresh_token,
+      },
+      data: {
+        refresh_token: newRefreshToken,
+      },
+    });
 
     res.json({ accessToken, refreshToken: newRefreshToken });
   } catch (error) {
@@ -96,14 +121,22 @@ router.post('/refresh-token', (req: Request, res: Response) => {
   }
 });
 
-router.post('/logout', (req: Request, res: Response) => {
+router.post('/logout', async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
 
   if (!refreshToken) {
     return res.status(401).json({ error: 'You are not logged in.' });
   }
 
-  refreshTokens.splice(refreshTokens.indexOf(refreshToken), 1);
+  try {
+    await prisma.refreshToken.delete({
+      where: {
+        refresh_token: refreshToken,
+      },
+    });
+  } catch (err) {
+    return res.status(401).json({ error: 'Wrong refresh token.' });
+  }
 
   res.status(204).json({ success: true });
 });

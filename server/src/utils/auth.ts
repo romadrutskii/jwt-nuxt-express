@@ -1,19 +1,20 @@
-import { User } from '../../../interfaces/auth';
+import { Prisma } from '@prisma/client';
+
 const jwt = require('jsonwebtoken');
 
-function generateAccessToken(user: User) {
+function generateAccessToken(user: Prisma.UserCreateInput) {
   return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: '15m',
   });
 }
 
-function generateRefreshToken(user: User) {
+function generateRefreshToken(user: Prisma.UserCreateInput) {
   return jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: '7d',
   });
 }
 
-export function issueTokenPair(user: User): {
+export function issueTokenPair(user: Prisma.UserCreateInput): {
   accessToken: string;
   refreshToken: string;
 } {
