@@ -7,9 +7,9 @@ const { posts } = defineProps<{
 </script>
 
 <template>
-  <div class="w-[600px] max-w-full">
+  <div>
     <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Your posts</h2>
-    <div v-if="posts && posts.length">
+    <div v-if="posts && posts.length" class="flex flex-col gap-y-6 mb-16">
       <Post v-for="post in posts" :key="post.id" v-bind="post" />
     </div>
     <div v-else>

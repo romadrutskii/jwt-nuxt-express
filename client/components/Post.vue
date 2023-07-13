@@ -1,8 +1,10 @@
 <template>
-  <div class="flex gap-x-3">
-    <img
-      src="https://yt3.googleusercontent.com/-CFTJHU7fEWb7BYEb6Jh9gm1EpetvVGQqtof0Rbh-VQRIznYYKJxCaqv_9HeBcmJmIsp2vOO9JU=s900-c-k-c0x00ffffff-no-rj"
-      class="w-8 h8 rounded-full" />
+  <div class="flex items-start space-x-4">
+    <div class="flex-shrink-0">
+      <img
+        src="https://yt3.googleusercontent.com/-CFTJHU7fEWb7BYEb6Jh9gm1EpetvVGQqtof0Rbh-VQRIznYYKJxCaqv_9HeBcmJmIsp2vOO9JU=s900-c-k-c0x00ffffff-no-rj"
+        class="inline-block w-8 h-8 rounded-full" />
+    </div>
     <div>
       <div>{{ }}</div>
       <div>{{ text }}</div>

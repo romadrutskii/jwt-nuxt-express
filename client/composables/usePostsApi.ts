@@ -1,4 +1,4 @@
-import { IPost } from 'interfaces';
+import { Post } from 'interfaces';
 
 export default function usePostsApi() {
   const runtimeConfig = useRuntimeConfig();
@@ -10,7 +10,7 @@ export default function usePostsApi() {
   const token = useStatefulCookie<string | null>('accessToken');
 
   const getPostsByUserId = async (userId: string, opts?: any) => {
-    const { data, pending, error, refresh } = await fetchPosts<IPost[]>(
+    const { data, pending, error, refresh } = await fetchPosts<Post[]>(
       `posts?userId=${userId}`,
       opts
     );
