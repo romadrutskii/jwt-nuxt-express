@@ -3,6 +3,7 @@ const { authenticateToken } = require('../middleware/authenticateToken');
 import { Request, Response, Router } from 'express';
 import { AuthenticatedRequest } from '../interfaces/auth';
 import { PrismaClient, Prisma } from '@prisma/client';
+import { Post, User, Like } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -43,6 +44,9 @@ router.get('/:username', async (req: Request, res: Response) => {
       where: {
         authorId: user.id,
       },
+      include: {
+        likes: true,
+      },
     });
 
     res.json(userPosts);
@@ -58,11 +62,11 @@ router.post(
   authenticateToken,
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user!.id;
-    console.log(userId);
 
     if (!req.body.text) {
       return res.status(422).json({ error: 'Post text must be provided.' });
     }
+
     const newPost = await prisma.post.create({
       data: {
         author: {
@@ -82,20 +86,23 @@ router.put(
   '/:id',
   authenticateToken,
   async (req: AuthenticatedRequest, res: Response) => {
+    const postId = req.params.id;
+    const userId = req.user!.id;
+
     if (!req.body.text) {
       return res.status(422).json({ error: 'Post text must be provided.' });
     }
 
     const post = await prisma.post.findUnique({
       where: {
-        id: req.params.id,
+        id: postId,
       },
     });
     if (!post) {
       return res.status(404).json({ error: 'Post not found.' });
     }
 
-    if (post.authorId !== req.user!.id) {
+    if (post.authorId !== userId) {
       return res
         .status(403)
         .json({ error: 'You can only edit your own posts.' });
@@ -103,7 +110,7 @@ router.put(
 
     const updatedPost = await prisma.post.update({
       where: {
-        id: req.params.id,
+        id: postId,
       },
       data: {
         text: req.body.text,
@@ -118,24 +125,30 @@ router.delete(
   '/:id',
   authenticateToken,
   async (req: AuthenticatedRequest, res: Response) => {
+    const postId = req.params.id;
+    const userId = req.user!.id;
+
     const post = await prisma.post.findUnique({
       where: {
-        id: req.params.id,
+        id: postId,
       },
     });
     if (!post) {
       return res.status(404).json({ error: 'Post not found.' });
     }
-    if (post.authorId !== req.user!.id) {
+
+    if (post.authorId !== userId) {
       return res
         .status(403)
         .json({ error: 'You can only delete your own posts.' });
     }
+
     await prisma.post.delete({
       where: {
         id: req.params.id,
       },
     });
+
     res.json({ success: true });
   }
 );
@@ -187,11 +200,6 @@ router.post(
         likeCount: {
           increment: 1,
         },
-        /*         likes: {
-          connect: {
-            id: like.id,
-          },
-        }, */
       },
     });
 
@@ -237,11 +245,6 @@ router.delete(
         likeCount: {
           decrement: 1,
         },
-        /*         likes: {
-          disconnect: {
-            id: like.id,
-          },
-        }, */
       },
     });
 

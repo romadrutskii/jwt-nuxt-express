@@ -1,17 +1,15 @@
 <script lang="ts" setup>
 const route = useRoute();
-const username = route.params.username;
+const username = route.params.username as string;
+const { getPostsByUsername } = usePostsApi();
 
-const { data, error } = await usePostsFetch(`posts/${username}`, {
-  method: 'GET',
-  server: true,
-});
+const { data: posts } = await getPostsByUsername(username);
 </script>
 
 <template>
   <div>
     <div>
-      <UsersPosts :posts="data" />
+      <UsersPosts :posts="posts" />
     </div>
   </div>
 </template>

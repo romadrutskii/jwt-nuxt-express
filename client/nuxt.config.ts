@@ -1,4 +1,3 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   app: {
     head: {
@@ -24,5 +23,11 @@ export default defineNuxtConfig({
   },
   imports: {
     dirs: ['stores'],
+  },
+  runtimeConfig: {
+    public: {
+      postsApiBase: `http://${process.env.HOST}:${process.env.POSTS_SERVER_PORT}/`,
+      authApiBase: `http://${process.env.HOST}:${process.env.AUTH_SERVER_PORT}/`,
+    },
   },
 });

@@ -1,4 +1,5 @@
 interface User {
+  id: string;
   username: string;
 }
 
@@ -90,6 +91,7 @@ export default defineStore('auth', () => {
 
     if (data.value) {
       currentUser.value = {
+        id: data.value.id,
         username: data.value.username,
       };
     }
