@@ -9,7 +9,8 @@
     "debug": "node --inspect ./authServer.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsc-watch --onSuccess \"npm run serve\"",
-    "start:migrate:prod": "prisma migrate deploy && npm run start"
+    "start:migrate:prod": "prisma migrate deploy && npm run start",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
