@@ -1,7 +1,7 @@
 export interface Post {
   id: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   text: string;
   author: User;
   authorId: string;
@@ -11,8 +11,8 @@ export interface Post {
 
 export interface User {
   id: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   username: string;
   password: string;
   posts: Post[];
@@ -21,7 +21,7 @@ export interface User {
 
 export interface Like {
   id: string;
-  createdAt: Date;
+  createdAt: string;
   user: User;
   userId: string;
   post: Post;
@@ -30,6 +30,6 @@ export interface Like {
 
 export interface RefreshToken {
   refresh_token: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
