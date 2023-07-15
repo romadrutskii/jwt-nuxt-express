@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "serve": "concurrently \"node ./dist/authServer.js\" \"node ./dist/postsServer.js\"",
-    "dev": "tsc-watch --onCompilationComplete \"npm run serve\"",
+    "dev": "nodemon -L",
     "debug": "node --inspect ./authServer.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsc-watch --onSuccess \"npm run serve\"",

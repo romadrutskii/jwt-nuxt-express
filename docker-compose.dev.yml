@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  server:
+    command: npm run dev
+    volumes:
+      - ./server/src:/usr/src/app/src
