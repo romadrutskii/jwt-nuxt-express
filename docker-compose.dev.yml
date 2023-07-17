@@ -5,3 +5,18 @@ services:
     command: npm run dev
     volumes:
       - ./server/src:/usr/src/app/src
+
+  client:
+    command: npm run dev
+    volumes:
+      - ./client/pages:/usr/src/app/pages
+      - ./client/assets:/usr/src/app/assets
+      - ./client/components:/usr/src/app/components
+      - ./client/composables:/usr/src/app/composables
+      - ./client/interfaces:/usr/src/app/interfaces
+      - ./client/layouts:/usr/src/app/layouts
+      - ./client/middleware:/usr/src/app/middleware
+      - ./client/public:/usr/src/app/public
+      - ./client/server:/usr/src/app/server
+      - ./client/stores:/usr/src/app/stores
+      - ./client/app.vue:/usr/src/app/app.vue

@@ -5,12 +5,14 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-COPY .env ./
-
 RUN npm install
 
 COPY . .
 
-RUN npm run build
+# RUN npx prisma migrate deploy
 
-CMD ["npm", "run", "serve"]
+CMD ["npx", "prisma", "migrate", "deploy"]
+
+# RUN npm run build
+
+# CMD ["npm", "run", "serve"]

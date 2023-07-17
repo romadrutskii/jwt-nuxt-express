@@ -4,13 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "serve": "concurrently \"node ./dist/authServer.js\" \"node ./dist/postsServer.js\"",
     "dev": "nodemon -L",
-    "debug": "node --inspect ./authServer.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsc-watch --onSuccess \"npm run serve\"",
-    "start:migrate:prod": "prisma migrate deploy && npm run start",
-    "build": "tsc"
+    "serve": "concurrently \"node ./dist/authServer.js\" \"node ./dist/postsServer.js\"",
+    "start": "tsc && npm run serve"
   },
   "keywords": [],
   "author": "",

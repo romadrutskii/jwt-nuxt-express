@@ -30,4 +30,11 @@ export default defineNuxtConfig({
       authApiBase: `http://${process.env.HOST}:${process.env.AUTH_SERVER_PORT}/`,
     },
   },
+  vite: {
+    server: {
+      watch: {
+        usePolling: true,
+      },
+    },
+  },
 });

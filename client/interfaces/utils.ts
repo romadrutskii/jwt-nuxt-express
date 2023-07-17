@@ -1,5 +1,5 @@
 export interface Notification {
   id?: number;
-  type: "error" | "success";
+  type: 'error' | 'success';
   message: string;
 }

@@ -1,7 +1,7 @@
-import { Notification } from "~/types";
+import { Notification } from '~/interfaces/utils';
 
 export const useNotifications = (milliseconds = 3000) => {
-  const notifications = useState<Notification[]>("notifications", () => []);
+  const notifications = useState<Notification[]>('notifications', () => []);
 
   const notify = (notification: Notification) => {
     const id = notifications.value.length + 1;

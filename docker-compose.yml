@@ -1,7 +1,7 @@
 services:
   db:
-    container_name: db
     image: postgres:latest
+    container_name: jwt-db
     restart: unless-stopped
     ports:
       - '${POSTGRES_PORT}:${POSTGRES_PORT}'
@@ -14,7 +14,7 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: pgadmin
+    container_name: jwt-pgadmin
     depends_on:
       - db
     ports:
@@ -30,8 +30,8 @@ services:
 
   server:
     build: ./server
-    container_name: server
-    command: npm run serve
+    container_name: jwt-server
+    command: npm run start
     restart: unless-stopped
     ports:
       - '${AUTH_SERVER_PORT}:${AUTH_SERVER_PORT}'
@@ -46,13 +46,17 @@ services:
 
   client:
     build: ./client
-    command: npm run dev
+    container_name: jwt-client
+    command: npm run preview
     restart: unless-stopped
     ports:
       - '24678:24678'
       - '${CLIENT_PORT}:${CLIENT_PORT}'
     environment:
-      - CLIENT_PORT=${CLIENT_PORT}
+      - AUTH_SERVER_PORT=${AUTH_SERVER_PORT}
+      - POSTS_SERVER_PORT=${POSTS_SERVER_PORT}
+      - PORT=${CLIENT_PORT}
+      - SERVER_HOST=${SERVER_HOST}
 
 volumes:
   postgres-data:
