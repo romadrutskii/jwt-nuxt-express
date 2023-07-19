@@ -41,6 +41,8 @@ services:
       - POSTS_SERVER_PORT=${POSTS_SERVER_PORT}
       - CLIENT_PORT=${CLIENT_PORT}
       - DATABASE_URL=${DATABASE_URL}
+      - CLIENT_HOST=${CLIENT_HOST}
+      - SERVER_HOST=${SERVER_HOST}
     depends_on:
       - db
 
@@ -57,6 +59,18 @@ services:
       - POSTS_SERVER_PORT=${POSTS_SERVER_PORT}
       - PORT=${CLIENT_PORT}
       - SERVER_HOST=${SERVER_HOST}
+      - POSTS_API_URL=http://${SERVER_HOST}:${POSTS_SERVER_PORT}
+      - AUTH_API_URL=http://${SERVER_HOST}:${AUTH_SERVER_PORT}
+
+  nginx:
+    image: nginx:stable-alpine
+    container_name: jwt-nginx
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx/nginx.conf.prod:/etc/nginx/conf.d/nginx.conf
+    depends_on:
+      - client
 
 volumes:
   postgres-data:

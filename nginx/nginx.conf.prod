@@ -1,0 +1,18 @@
+server {
+  listen 80;
+  server_name dev.com;
+
+  location / {
+    proxy_pass http://jwt-client:5173;
+  }
+
+  location /api/posts {
+    proxy_pass http://jwt-server:3000;
+    rewrite ^/api/(.*) /$1 break;
+  }
+
+  location /api/auth {
+    proxy_pass http://jwt-server:3001;
+    rewrite ^/api/(.*) /$1 break;
+  }
+}

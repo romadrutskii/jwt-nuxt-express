@@ -1,84 +1,96 @@
 import { Post } from 'interfaces';
 
 export default function usePostsApi() {
-  const runtimeConfig = useRuntimeConfig();
-  const fetchPosts = <T>(url: string, opts?: any) =>
-    useFetch<T>(url, {
-      baseURL: runtimeConfig.public.postsApiBase,
-      ...opts,
-    });
   const token = useStatefulCookie<string | null>('accessToken');
+  const baseUrl = computed(
+    () => (process.server ? process.env.POSTS_API_URL : 'api') + '/posts'
+  );
 
   const getPostsByUserId = async (userId: string, opts?: any) => {
-    const { data, pending, error, refresh } = await fetchPosts<Post[]>(
-      `posts?userId=${userId}`,
+    const { data, pending, error, refresh } = await useFetch<Post[]>(
+      `${baseUrl.value}?userId=${userId}`,
       opts
     );
     return { data, pending, error, refresh };
   };
 
   const getPostsByUsername = async (username: string, opts?: any) => {
-    const { data, pending, error, refresh } = await fetchPosts(
-      `posts/${username}`,
+    const { data, pending, error, refresh } = await useFetch(
+      `${baseUrl.value}/${username}`,
       opts
     );
     return { data, pending, error, refresh };
   };
 
   const addPost = async (text: string, opts?: any) => {
-    const { execute, pending, error } = await fetchPosts('posts', {
-      method: 'POST',
-      body: { text },
-      headers: token.value
-        ? { Authorization: `Bearer ${token.value}` }
-        : undefined,
-      ...opts,
-    });
-    return { execute, pending, error };
+    const { data, execute, pending, error } = await useFetch(
+      `${baseUrl.value}`,
+      {
+        method: 'POST',
+        body: { text },
+        headers: token.value
+          ? { Authorization: `Bearer ${token.value}` }
+          : undefined,
+        ...opts,
+      }
+    );
+    return { data, execute, pending, error };
   };
 
   const editPost = async (id: string, text: string, opts?: any) => {
-    const { execute, pending, error } = await fetchPosts(`posts/${id}`, {
-      method: 'PUT',
-      body: { text },
-      headers: token.value
-        ? { Authorization: `Bearer ${token.value}` }
-        : undefined,
-      ...opts,
-    });
+    const { execute, pending, error } = await useFetch(
+      `${baseUrl.value}/${id}`,
+      {
+        method: 'PUT',
+        body: { text },
+        headers: token.value
+          ? { Authorization: `Bearer ${token.value}` }
+          : undefined,
+        ...opts,
+      }
+    );
     return { execute, pending, error };
   };
 
   const deletePost = async (id: string, opts?: any) => {
-    const { execute, pending, error } = await fetchPosts(`posts/${id}`, {
-      method: 'DELETE',
-      headers: token.value
-        ? { Authorization: `Bearer ${token.value}` }
-        : undefined,
-      ...opts,
-    });
+    const { execute, pending, error } = await useFetch(
+      `${baseUrl.value}/${id}`,
+      {
+        method: 'DELETE',
+        headers: token.value
+          ? { Authorization: `Bearer ${token.value}` }
+          : undefined,
+        ...opts,
+      }
+    );
     return { execute, pending, error };
   };
 
   const addLikeToPost = async (id: string, opts?: any) => {
-    const { execute, pending, error } = await fetchPosts(`posts/${id}/like`, {
-      method: 'POST',
-      headers: token.value
-        ? { Authorization: `Bearer ${token.value}` }
-        : undefined,
-      ...opts,
-    });
+    const { execute, pending, error } = await useFetch(
+      `${baseUrl.value}/${id}/like`,
+      {
+        method: 'POST',
+        headers: token.value
+          ? { Authorization: `Bearer ${token.value}` }
+          : undefined,
+        ...opts,
+      }
+    );
     return { execute, pending, error };
   };
 
   const removeLikeFromPost = async (id: string, opts?: any) => {
-    const { execute, pending, error } = await fetchPosts(`posts/${id}/like`, {
-      method: 'DELETE',
-      headers: token.value
-        ? { Authorization: `Bearer ${token.value}` }
-        : undefined,
-      ...opts,
-    });
+    const { execute, pending, error } = await useFetch(
+      `${baseUrl.value}/${id}/like`,
+      {
+        method: 'DELETE',
+        headers: token.value
+          ? { Authorization: `Bearer ${token.value}` }
+          : undefined,
+        ...opts,
+      }
+    );
     return { execute, pending, error };
   };
 

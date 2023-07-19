@@ -14,9 +14,13 @@ export default defineStore('auth', () => {
   const isLoading = ref(false);
   const isLoggedIn = computed(() => !!currentUser.value);
 
+  const baseUrl = computed(
+    () => (process.server ? process.env.AUTH_API_URL : 'api') + '/auth/'
+  );
+
   async function register(username: string, password: string) {
     isLoading.value = true;
-    const { data, error } = await useAuthFetch('register', {
+    const { data, error } = await useFetch(baseUrl.value + 'register', {
       method: 'POST',
       body: {
         username,
@@ -45,7 +49,7 @@ export default defineStore('auth', () => {
 
   async function login(username: string, password: string) {
     isLoading.value = true;
-    const { data, error } = await useAuthFetch('login', {
+    const { data, error } = await useFetch(baseUrl.value + 'login', {
       method: 'POST',
       body: {
         username,
@@ -65,7 +69,6 @@ export default defineStore('auth', () => {
     if (data.value) {
       accessTokenCookie.value = data.value.accessToken;
       refreshTokenCookie.value = data.value.refreshToken;
-
       currentUser.value = {
         username,
       };
@@ -81,7 +84,7 @@ export default defineStore('auth', () => {
 
   async function getCurrentUser() {
     isLoading.value = true;
-    const { data, error } = await useAuthFetch('user', {
+    const { data, error } = await useFetch(baseUrl.value + 'user', {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${accessTokenCookie.value}`,
@@ -99,7 +102,7 @@ export default defineStore('auth', () => {
 
   async function logout() {
     isLoading.value = true;
-    const { error } = await useAuthFetch('logout', {
+    const { error } = await useFetch(baseUrl.value + 'logout', {
       method: 'POST',
       body: {
         refreshToken: refreshTokenCookie.value,
@@ -128,7 +131,7 @@ export default defineStore('auth', () => {
 
   async function refreshToken() {
     isLoading.value = true;
-    const { data, error } = await useAuthFetch('refresh-token', {
+    const { data, error } = await useFetch(baseUrl.value + 'refresh-token', {
       method: 'POST',
       body: {
         refreshToken: refreshTokenCookie.value,

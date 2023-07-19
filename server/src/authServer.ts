@@ -1,26 +1,28 @@
-const express = require('express');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const authRouter = require('./routes/auth');
-const port = process.env.AUTH_SERVER_PORT;
+require('dotenv').config();
 
-// Load environment variables from .env file
-dotenv.config();
+const express = require('express');
+const authRouter = require('./routes/auth');
+
+import cors from 'cors';
+import { allowedOrigins } from './utils/cors';
 
 const app = express();
 app.use(express.json());
 
-const corsOptions = {
+const corsOptions: cors.CorsOptions = {
   credentials: true,
-  origin: `http://localhost:${process.env.CLIENT_PORT}`,
+  origin: allowedOrigins,
   optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
-app.use('/', authRouter);
+app.use('/auth', authRouter);
+
+const host = process.env.SERVER_HOST || 'localhost';
+const port = process.env.AUTH_SERVER_PORT || 3001;
 
 app.listen(port, () => {
-  console.log(`Server started on http://localhost:${port}`);
+  console.log(`Server started on http://${host}:${port}`);
 });
 
 // Workaround for typescript
